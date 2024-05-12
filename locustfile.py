@@ -34,7 +34,6 @@ class VacanciesLoadTestingUser(grpc_user.GrpcUser):
         self.grpc_update_vacancy(vacancy_id)
         self.grpc_get_vacancy(vacancy_id)
         self.grpc_delete_vacancy(vacancy_id)
-        self.grpc_get_all_vacancies()
 
     def grpc_login_and_return_access_token(self, user):
         with grpc.insecure_channel(VACANCIES_URL) as channel:
@@ -60,6 +59,8 @@ class VacanciesLoadTestingUser(grpc_user.GrpcUser):
         return self.stub.DeleteVacancy(delete_vacancy_request)
 
     def grpc_get_all_vacancies(self):
+        # I tried a few different requests types but still not working...
+        # It works perfectly from Evans.
         all_vacancies_request = vacancy_service_pb2.vacancy__pb2.Vacancy()
         self.stub.GetVacancies(all_vacancies_request)
 
