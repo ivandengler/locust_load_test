@@ -1,0 +1,6 @@
+Method,Name,Error,Occurrences
+grpc,/pb.VacancyService/GetVacancies,"<_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.INTERNAL
+	details = ""Exception serializing request!""
+	debug_error_string = ""None""
+>",25

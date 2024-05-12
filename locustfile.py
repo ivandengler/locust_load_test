@@ -7,7 +7,7 @@ import json
 import grpc_user # type: ignore
 
 # Libs
-from locust import task, constant
+from locust import task
 from users_data import users
 from google.protobuf.json_format import MessageToJson 
 
@@ -24,16 +24,21 @@ TIME_TO_SLEEP_GET_VACANCIES = 45
 
 # Class definitions
 class VacanciesLoadTestingUser(grpc_user.GrpcUser):
-    wait_time = constant(TIME_TO_SLEEP_MAIN_LOOP)
     host = VACANCIES_URL
     stub_class = vacancy_service_pb2_grpc.VacancyServiceStub
 
     @task
+    def get_all_vacancies(self):
+        self.stub.GetVacancies(vacancy_service_pb2.vacancy__pb2)
+        time.sleep(TIME_TO_SLEEP_GET_VACANCIES)
+
+    @task(3)
     def crud_vacancies_load_test(self):
         vacancy_id = self.grpc_create_and_upload_vacancy()
         self.grpc_update_vacancy(vacancy_id)
         self.grpc_get_vacancy(vacancy_id)
         self.grpc_delete_vacancy(vacancy_id)
+        time.sleep(TIME_TO_SLEEP_MAIN_LOOP)
 
     def grpc_login_and_return_access_token(self, user):
         with grpc.insecure_channel(VACANCIES_URL) as channel:
@@ -58,18 +63,8 @@ class VacanciesLoadTestingUser(grpc_user.GrpcUser):
         delete_vacancy_request = vacancy_service_pb2.VacancyRequest(Id=vacancy_id)
         return self.stub.DeleteVacancy(delete_vacancy_request)
 
-    def grpc_get_all_vacancies(self):
-        # I tried a few different requests types but still not working...
-        # It works perfectly from Evans.
-        all_vacancies_request = vacancy_service_pb2.vacancy__pb2.Vacancy()
-        self.stub.GetVacancies(all_vacancies_request)
-
     def on_start(self):
-        gevent.spawn(self._on_background)
         user = users[random.randint(0, TOTAL_USERS - 1)]
         self.grpc_login_and_return_access_token(user)
-
-    def _on_background(self):
-        while True:
-            gevent.sleep(TIME_TO_SLEEP_GET_VACANCIES)
-            self.grpc_get_all_vacancies()
+        #gevent.spawn(self._on_background())
+            
