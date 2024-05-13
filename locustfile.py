@@ -8,6 +8,7 @@ from google.protobuf.json_format import MessageToJson
 
 # Libs
 from locust import task
+from locust.user.task import LOCUST_STATE_STOPPING
 
 import grpc_user  # type: ignore
 
@@ -87,3 +88,8 @@ class VacanciesLoadTestingUser(grpc_user.GrpcUser):
         user = users[random.randint(0, TOTAL_USERS - 1)]
         self.grpc_login_and_return_access_token(user)
         # gevent.spawn(self._on_background())
+
+    def _on_background(self):
+        while self.environment.running.state != LOCUST_STATE_STOPPING:
+            self.stub.GetVacancies(vacancy_service_pb2.vacancy__pb2)
+            time.sleep(TIME_TO_SLEEP_GET_VACANCIES)
